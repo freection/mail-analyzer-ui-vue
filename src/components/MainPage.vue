@@ -9,24 +9,104 @@
 </template>
 
 <script>
+  var _ = require('lodash')
+
   import AppHeader from './AppHeader'
   import QuestionsPage from './QuestionsPage'
   import DiscussionsPage from './DiscussionsPage'
   import TasksPage from './TasksPage'
 
+  function readQuestions (component, fromIndex, numOfItems) {
+    console.log('Reading %s questions from index %s', numOfItems, fromIndex)
+
+    return component.$http.get('/api/questions', {
+      fromIndex: fromIndex,
+      toIndex: fromIndex + numOfItems
+    }).then(
+      function (response) {
+        console.log('Got %s results', response.data.length)
+
+        _.forEach(response.data, function (question) {
+          component.model.questions.push(question)
+        })
+        return response
+      }
+    )
+  }
+
+  function readAllQuestions (component) {
+    console.log('readAllQuestions')
+
+    batchFetch(component, readQuestions, component.model.questions, 0, 100).then(
+      function () {
+        recurringQuestionsFetch(component)
+      }
+    )
+  }
+
+  function recurringQuestionsFetch (component) {
+    setInterval(function () {
+      readQuestions(component, component.model.questions.length, 100)
+    }, 15000)
+  }
+
+  function readDiscussions (component, fromIndex, numOfItems) {
+    console.log('Reading %s discussions from index %s', numOfItems, fromIndex)
+
+    return component.$http.get('/api/discussions', {
+      fromIndex: fromIndex,
+      toIndex: fromIndex + numOfItems
+    }).then(
+      function (response) {
+        console.log('Got %s results', response.data.length)
+
+        _.forEach(response.data, function (question) {
+          component.model.discussions.push(question)
+        })
+        return response
+      }
+    )
+  }
+
+  function readAllDiscussions (component) {
+    console.log('readAllDiscussions')
+
+    batchFetch(component, readDiscussions, component.model.discussions, 0, 100).then(
+      function () {
+        recurringDiscussionsFetch(component)
+      }
+    )
+  }
+
+  function recurringDiscussionsFetch (component) {
+    setInterval(function () {
+      readDiscussions(component, component.model.discussions.length, 100)
+    }, 15000)
+  }
+
+  function batchFetch (component, fetchFunc, fetchStore, fromIndex, toIndex) {
+    return fetchFunc(component, fromIndex, toIndex).then(
+      function (response) {
+        if (response.length) {
+          return batchFetch(component, fetchStore.length, 100)
+        }
+      }
+    )
+  }
+
   export default {
     data: function () {
       return {
         currentView: 'QuestionsPage',
-        model: {}
+        model: {
+          questions: [],
+          discussions: []
+        }
       }
     },
     ready: function () {
-      this.$http.get('/api/threads').then(
-        function (response) {
-          this.$set('model', response.data)
-        }
-      )
+      readAllQuestions(this)
+      readAllDiscussions(this)
     },
     components: {
       AppHeader,
