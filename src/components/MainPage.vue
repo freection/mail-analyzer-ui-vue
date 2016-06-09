@@ -19,7 +19,7 @@
   function readQuestions (component, fromIndex, numOfItems) {
     console.log('Reading %s questions from index %s', numOfItems, fromIndex)
 
-    return component.$http.get('/api/questions', {
+    return component.$http.get('/api/accounts/5708ecd4ca2712cc3f8b4569/questions', {
       fromIndex: fromIndex,
       toIndex: fromIndex + numOfItems
     }).then(
@@ -53,7 +53,7 @@
   function readDiscussions (component, fromIndex, numOfItems) {
     console.log('Reading %s discussions from index %s', numOfItems, fromIndex)
 
-    return component.$http.get('/api/discussions', {
+    return component.$http.get('/api/accounts/5708ecd4ca2712cc3f8b4569/discussions', {
       fromIndex: fromIndex,
       toIndex: fromIndex + numOfItems
     }).then(
